@@ -1,111 +1,113 @@
 import React from 'react';
 import {SafeAreaView, StyleSheet} from 'react-native';
-import {Canvas, Rect, Text, useFont} from '@shopify/react-native-skia';
+import {
+  Canvas,
+  Path,
+  Rect,
+  Text,
+  useFont,
+  Skia,
+} from '@shopify/react-native-skia';
 
 const text1 = 'sm case';
 const text2 = 'CamelCase';
 
-function App(): JSX.Element {
-  const font1 = useFont(require('./assets/OpenSans-Regular.ttf'), 10);
-  const font2 = useFont(require('./assets/OpenSans-Regular.ttf'), 20);
-  const font3 = useFont(require('./assets/OpenSans-Regular.ttf'), 30);
+function TestText({size, y}: {size: number; y: number}) {
+  const font = useFont(require('./assets/OpenSans-Regular.ttf'), size);
 
-  if (!font1 || !font2 || !font3) {
+  if (!font) {
     return <></>;
   }
 
-  const textBounds1 = font1.measureText(text1);
-  const textBounds2 = font1.measureText(text2);
+  const textBounds1 = font.measureText(text1);
+  const textBounds2 = font.measureText(text2);
+  console.log('Text, size', size, textBounds1.height, textBounds2.height);
 
-  const textBounds3 = font2.measureText(text1);
-  const textBounds4 = font2.measureText(text2);
+  return (
+    <>
+      <Rect
+        rect={{
+          width: textBounds1.width,
+          height: -textBounds1.height,
+          x: 30,
+          y: y,
+        }}
+        color="red"
+        opacity={0.5}
+      />
+      <Text font={font} text={text1} y={y} x={30} color="black" />
 
-  const textBounds5 = font3.measureText(text1);
-  const textBounds6 = font3.measureText(text2);
-
-  console.log(
-    textBounds1.height,
-    textBounds2.height,
-    textBounds3.height,
-    textBounds4.height,
-    textBounds5.height,
-    textBounds6.height,
+      <Rect
+        rect={{
+          width: textBounds2.width,
+          height: -textBounds2.height,
+          x: 30,
+          y: y + size * 1.5,
+        }}
+        color="red"
+        opacity={0.5}
+      />
+      <Text font={font} text={text2} y={y + size * 1.5} x={30} color="black" />
+    </>
   );
+}
 
+function TestTextWithPath({size, y}: {size: number; y: number}) {
+  const font = useFont(require('./assets/OpenSans-Regular.ttf'), size);
+  if (!font) {
+    return <></>;
+  }
+
+  const path1 = Skia.Path.MakeFromText(text1, 30, y, font);
+  const path2 = Skia.Path.MakeFromText(text2, 30, y + size * 1.5, font);
+  if (!path1 || !path2) {
+    return <></>;
+  }
+
+  const textBounds1 = path1.computeTightBounds();
+  const textBounds2 = path2.computeTightBounds();
+
+  console.log('Path, size', size, textBounds1.height, textBounds2.height);
+
+  return (
+    <>
+      <Rect
+        rect={{
+          width: textBounds1.width,
+          height: -textBounds1.height,
+          x: 30,
+          y: y,
+        }}
+        color="green"
+        opacity={0.5}
+      />
+      <Path path={path1} color="black" />
+
+      <Rect
+        rect={{
+          width: textBounds2.width,
+          height: -textBounds2.height,
+          x: 30,
+          y: y + size * 1.5,
+        }}
+        color="green"
+        opacity={0.5}
+      />
+      <Path path={path2} color="black" />
+    </>
+  );
+}
+
+function App(): JSX.Element {
   return (
     <SafeAreaView style={styles.container}>
       <Canvas style={styles.canvas}>
-        <Rect
-          rect={{
-            width: textBounds1.width,
-            height: -textBounds1.height,
-            x: 30,
-            y: 30,
-          }}
-          color="red"
-          opacity={0.5}
-        />
-        <Text font={font1} text={text1} y={30} x={30} color="black" />
+        <TestText size={10} y={30} />
+        <TestText size={20} y={110} />
+        <TestText size={30} y={200} />
 
-        <Rect
-          rect={{
-            width: textBounds2.width,
-            height: -textBounds2.height,
-            x: 30,
-            y: 60,
-          }}
-          color="red"
-          opacity={0.5}
-        />
-        <Text font={font1} text={text2} y={60} x={30} color="black" />
-
-        <Rect
-          rect={{
-            width: textBounds3.width,
-            height: -textBounds3.height,
-            x: 30,
-            y: 100,
-          }}
-          color="red"
-          opacity={0.5}
-        />
-        <Text font={font2} text={text1} y={100} x={30} color="black" />
-
-        <Rect
-          rect={{
-            width: textBounds4.width,
-            height: -textBounds4.height,
-            x: 30,
-            y: 130,
-          }}
-          color="red"
-          opacity={0.5}
-        />
-        <Text font={font2} text={text2} y={130} x={30} color="black" />
-
-        <Rect
-          rect={{
-            width: textBounds5.width,
-            height: -textBounds5.height,
-            x: 30,
-            y: 180,
-          }}
-          color="red"
-          opacity={0.5}
-        />
-        <Text font={font3} text={text1} y={180} x={30} color="black" />
-
-        <Rect
-          rect={{
-            width: textBounds6.width,
-            height: -textBounds6.height,
-            x: 30,
-            y: 220,
-          }}
-          color="red"
-          opacity={0.5}
-        />
-        <Text font={font3} text={text2} y={220} x={30} color="black" />
+        <TestTextWithPath size={20} y={300} />
+        <TestTextWithPath size={30} y={400} />
       </Canvas>
     </SafeAreaView>
   );
